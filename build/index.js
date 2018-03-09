@@ -3,8 +3,8 @@ const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/clie
 const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData = {};
-const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
-const slackMessages = createMessageAdapter('sAcAKMnM7Y4x7RGLbYRdGwKp');
+const bot_token = 'TOKEN';
+const slackMessages = createMessageAdapter('TOKEN');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -39,12 +39,25 @@ slackMessages.action('welcome_button', (payload) => {
         };
         // columns
         for (let j = 1; j <= 5; j++) {
-            let actionObj = {
-                "name": "square",
-                "text": ":white_square:",
-                "type": "button",
-                "value": `${gridNumber}`
-            };
+            let actionObj = {};
+            let mineChance = Math.floor(Math.random() * 100) + 1;
+            //20% chance for a mine to appear
+            if (mineChance <= 20) {
+                actionObj = {
+                    "name": "bomb",
+                    "text": ":bomb:",
+                    "type": "button",
+                    "value": `${i}, ${j}`
+                };
+            }
+            else {
+                actionObj = {
+                    "name": "vacant",
+                    "text": ":black_square:",
+                    "type": "button",
+                    "value": `${i}, ${j}`
+                };
+            }
             gridNumber++;
             actions[j - 1] = actionObj;
         }

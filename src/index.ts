@@ -4,8 +4,8 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData: {[key: string]: any} = {};
 
-const bot_token = TOKEN;
-const slackMessages = createMessageAdapter(TOKEN);
+const bot_token = 'TOKEN';
+const slackMessages = createMessageAdapter('TOKEN');
 
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
@@ -38,6 +38,7 @@ slackMessages.action('welcome_button', (payload: {[key: string]: any}) => {
   // row
   for (let i = 1; i <= 5; i++) {
     let actions = [];
+
     let attachmentObj: {[key: string]: any} = {
       "fallback": "You are unable to start a game of Minesweeper.",
       "callback_id": "reveal",
@@ -48,11 +49,24 @@ slackMessages.action('welcome_button', (payload: {[key: string]: any}) => {
 
     // columns
     for (let j = 1; j <= 5; j++) {
-      let actionObj: {[key: string]: string} = {
-        "name": "square",
-        "text": ":white_square:",
-        "type": "button",
-        "value": `${gridNumber}`
+      let actionObj: {[key: string]: string} = {};
+      let mineChance: Number = Math.floor(Math.random() * 100) + 1;
+
+      //20% chance for a mine to appear
+      if(mineChance <= 20) {
+        actionObj = {
+          "name": "bomb",
+          "text": ":bomb:",
+          "type": "button",
+          "value": `${i}, ${j}`
+        }
+      } else {
+        actionObj = {
+          "name": "vacant",
+          "text": ":black_square:",
+          "type": "button",
+          "value": `${i}, ${j}`
+        }
       }
       gridNumber++;
       actions[j - 1] = actionObj;
