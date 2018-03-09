@@ -4,6 +4,7 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData: { [key: string]: any } = {};
 const gameSize: number = 5;
+let myTiles:any[] = [];
 
 const bot_token = TOKEN;
 const slackMessages = createMessageAdapter(TOKEN);
@@ -37,7 +38,18 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
     let grid = "";
 
     let msgAttachments = [];
+    
+    //make array of the game riles
+    myTiles = new Array(gameSize)
+    for (let i = 0; i < gameSize; i++) {
+        myTiles[i]=new Array(gameSize)
+        for(let j = 0; j < gameSize; j++) {
+          myTiles[i][j] = {action: {}, mineCount: 0};
+        }
+    }
+
     let gridNumber: number = 1;
+  
     // row
     for (let i = 1; i <= 5; i++) {
       let actions = [];
@@ -63,6 +75,10 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
             "type": "button",
             "value": `${i}, ${j}`
           }
+          //console.log("sdfksdfjk;alsjdfSDFJSDFKDSJKAFLJASDKJF-12-32-103-12")
+          //console.log(myTiles[i][j]);
+          myTiles[i - 1][j - 1].action = actionObj;
+          
         } else {
           actionObj = {
             "name": "unrevealed",
@@ -70,6 +86,9 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
             "type": "button",
             "value": `${i}, ${j}`
           }
+          //console.log("==-=-=-=---========---=-")
+          //console.log(myTiles[i - 1][j - 1])
+          myTiles[i - 1][j - 1].action = actionObj;
         }
         gridNumber++;
         actions[j - 1] = actionObj;
@@ -78,6 +97,8 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
       msgAttachments.push(attachmentObj);
     }
 
+    console.log("---------------________________-------->")
+    console.log(myTiles);
     web.chat.postMessage(payload.channel.id, '', {
       attachments: msgAttachments
     })
@@ -122,15 +143,18 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
   let row:number = tilePosition[0];
   let col:number = tilePosition[1];
 
+  console.log("%%%%%%%%")
+  console.log(action.name);
   if (action.name == "unrevealed") { // MAKE CONSTANTS
-    let tileAction = revealBlanks(row, col, action)
+    revealBlanks(row, col)
     //replacement.attachments[col - 1].actions = tileAction;
     console.log("TILE ACT")
-    console.log(tileAction);
+    //console.log(tileAction);
 
-    console.log("REPLACEMENT COL - 1")
-    console.log(replacement.attachments[row - 1].actions[col - 1]);
-    replacement.attachments[row - 1].actions[col - 1] = tileAction;
+    console.log("****************************")
+    //console.log(replacement.attachments[row - 1].actions[col - 1]);
+    //console.log(myTiles[row-1][col-1]);
+    replacement.attachments[row - 1].actions[col - 1] = myTiles[row - 1][col - 1].action;
 
   } else if (action.name == "bomb") {
     web.chat.postMessage(payload.channel.id, '', {
@@ -233,25 +257,24 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message: { [key: string]: a
   }
 });
 
-function revealBlanks(row:number, col:number, action:any):any {
+function revealBlanks(row:number, col:number) {
   console.log("REVEAL LBANKS ------->>>>>>>")
   if(row > 0  && row <= gameSize && col > 0 && col <= gameSize) {
     //get bomb count
-    if(action.name != "revealed") {
+    if(myTiles[row - 1][col - 1].action.name != "revealed") {
       console.log("REVEAL SQUARE-----!!!!!!!!!!")
-      action.name = "revealed";
-      action.text =":white_square:"
+      
+      /*revealBlanks(row - 1, col);
+      revealBlanks(row +1, col);
+      revealBlanks(row, col - 1);
+      revealBlanks(row, col + 1);
+      revealBlanks(row - 1, col - 1);
+      revealBlanks(row - 1, col + 1);
+      revealBlanks(row + 1, col + 1);
+      revealBlanks(row + 1, col - 1);*/
 
-      return action;
-      /*
-      revealBlanks(row - 1, col, action);
-      revealBlanks(row +1, col, action);
-      revealBlanks(row, col - 1, action);
-      revealBlanks(row, col + 1, action);
-      revealBlanks(row - 1, col - 1, action);
-      revealBlanks(row - 1, col + 1, action);
-      revealBlanks(row + 1, col + 1, action);
-      revealBlanks(row + 1, col - 1, action);*/
+      myTiles[row - 1][col - 1].action.name = "revealed";
+      myTiles[row - 1][col - 1].action.text =":white_square:"
     } else {
       return; //either is revealed already or has adjacent bombs
     }
