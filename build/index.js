@@ -5,9 +5,10 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 const appData = {};
 const gameSize = 5;
 let myTiles = [];
-const numbers = { 0: ":zero:", 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
+const numbers = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
+let flagModeOn = false;
 const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
-const slackMessages = createMessageAdapter('sAcAKMnM7Y4x7RGLbYRdGwKp');
+const slackMessages = createMessageAdapter('Gi5r3GB34JOzDArijtsobKYz');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -31,7 +32,7 @@ slackMessages.action('play_again', (payload) => {
         replacement.text = `${payload.user.name} started a new game of Minesweeper.`;
         let grid = "";
         let msgAttachments = [];
-        //make array of the game riles
+        //make array of the game tiles
         myTiles = new Array(gameSize);
         for (let i = 0; i < gameSize; i++) {
             myTiles[i] = new Array(gameSize);
@@ -84,6 +85,21 @@ slackMessages.action('play_again', (payload) => {
             attachmentObj.actions = actions;
             msgAttachments.push(attachmentObj);
         }
+        let flagAttachmentObj = {
+            "fallback": "You are unable to change flag mode.",
+            "callback_id": "flag_mode",
+            "color": "#3AA3E3",
+            "attachment_type": "default",
+            "actions": [
+                {
+                    "name": "flag a square",
+                    "text": "Enter flag mode :triangular_flag_on_post:",
+                    "type": "button",
+                    "value": "flag a square"
+                }
+            ]
+        };
+        msgAttachments.push(flagAttachmentObj);
         console.log("---------------________________-------->");
         countMines();
         console.log(myTiles);
@@ -99,6 +115,7 @@ slackMessages.action('play_again', (payload) => {
     }
     else {
         replacement.text = `Try a game next time, ${payload.user.name}! :slightly_smiling_face:`;
+        delete replacement.attachments[0].text;
     }
     // Typically, you want to acknowledge the action and remove the interactive elements from the message
     delete replacement.attachments[0].actions;
@@ -128,21 +145,18 @@ slackMessages.action('reveal', (payload) => {
     console.log("%%%%%%%%");
     console.log(action.name);
     if (action.name == "unrevealed") {
-        revealBlanks(row - 1, col - 1);
-        //replacement.attachments[col - 1].actions = tileAction;
-        console.log("TILE ACT");
-        //console.log(tileAction);
-        console.log("****************************");
-        //console.log(replacement.attachments[row - 1].actions[col - 1]);
-        //console.log(myTiles[row-1][col-1]);
-        for (let i = 0; i < gameSize; i++) {
-            for (let j = 0; j < gameSize; j++) {
-                replacement.attachments[i].actions[j] = myTiles[i][j].action;
-            }
+        if (!flagModeOn) {
+            revealBlanks(row - 1, col - 1);
+        }
+        else if (flagModeOn) {
+            addFlag(row - 1, col - 1);
         }
         //replacement.attachments[row - 1].actions[col - 1] = myTiles[row - 1][col - 1].action;
     }
-    else if (action.name == "bomb") {
+    else if (action.name == "mine" && flagModeOn) {
+        addFlag(row - 1, col - 1);
+    }
+    else if (action.name == "mine" && !flagModeOn) {
         web.chat.postMessage(payload.channel.id, '', {
             attachments: [
                 {
@@ -175,6 +189,42 @@ slackMessages.action('reveal', (payload) => {
             console.log('Message sent: ', res.ts);
         })
             .catch(console.error);
+    }
+    for (let i = 0; i < gameSize; i++) {
+        for (let j = 0; j < gameSize; j++) {
+            replacement.attachments[i].actions[j] = myTiles[i][j].action;
+        }
+    }
+    // Typically, you want to acknowledge the action and remove the interactive elements from the message
+    //delete replacement.attachments[0].actions;
+    return replacement;
+});
+// Attach action handlers by `callback_id`
+// (See: https://api.slack.com/docs/interactive-message-field-guide#attachment_fields)
+slackMessages.action('flag_mode', (payload) => {
+    console.log("PAYLOAD!!!!");
+    console.log(payload);
+    console.log("PAYLAOD ATTACHMENTS!!!!");
+    console.log(payload.original_message.attachments[0].actions);
+    // `payload` is JSON that describes an interaction with a message.
+    console.log(`The user ${payload.user.name} in team ${payload.team.domain} pressed the welcome button`);
+    // The `actions` array contains details about the specific action (button press, menu selection, etc.)
+    const action = payload.actions[0];
+    console.log(`The button had name ${action.name} and value ${action.value}`);
+    // You should return a JSON object which describes a message to replace the original.
+    // Note that the payload contains a copy of the original message (`payload.original_message`).
+    const replacement = payload.original_message;
+    if (replacement.attachments[gameSize].actions[0].name == "flag a square") {
+        flagModeOn = true;
+        replacement.attachments[gameSize].actions[0].name = "exit flag mode";
+        replacement.attachments[gameSize].actions[0].text = "Exit flag mode?";
+        replacement.attachments[gameSize].actions[0].value = "exit flag mode";
+    }
+    else if (replacement.attachments[gameSize].actions[0].name == "exit flag mode") {
+        flagModeOn = false;
+        replacement.attachments[gameSize].actions[0].name = "flag a square";
+        replacement.attachments[gameSize].actions[0].text = "Enter flag mode :triangular_flag_on_post:";
+        replacement.attachments[gameSize].actions[0].value = "flag a square";
     }
     // Typically, you want to acknowledge the action and remove the interactive elements from the message
     //delete replacement.attachments[0].actions;
@@ -236,6 +286,18 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         }
     }
 });
+function addFlag(row, col) {
+    console.log("MY TILES IN ADD FLAG");
+    console.log(myTiles[row][col].action.name);
+    if (myTiles[row][col].action.name == "unrevealed") {
+        myTiles[row][col].action.name = "unrevealed";
+        myTiles[row][col].action.text = ":triangular_flag_on_post:";
+    }
+    else if (myTiles[row][col].action.name == "mine") {
+        myTiles[row][col].action.name = "mine";
+        myTiles[row][col].action.text = ":triangular_flag_on_post:";
+    }
+}
 function revealBlanks(row, col) {
     //console.log("REVEAL LBANKS ------->>>>>>>")
     if (row >= 0 && row < gameSize && col >= 0 && col < gameSize) {
