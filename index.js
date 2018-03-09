@@ -4,8 +4,8 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData = {};
 
-const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
-const slackMessages = createMessageAdapter('eH71IkILfKbZnKT1A5EpexLH');
+const bot_token = '';
+const slackMessages = createMessageAdapter('');
 
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
