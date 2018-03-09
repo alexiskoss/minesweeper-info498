@@ -7,8 +7,8 @@ const gameSize = 5;
 let myTiles = [];
 const numbers = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
 let flagModeOn = false;
-const bot_token = TOKEN;
-const slackMessages = createMessageAdapter(TOKEN);
+const bot_token = 'TOKEN';
+const slackMessages = createMessageAdapter('TOKEN');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -138,6 +138,8 @@ slackMessages.action('reveal', (payload) => {
     const replacement = payload.original_message;
     console.log("ORINGLA MSG1!!!!!!!!!");
     console.log(replacement);
+    console.log("INNERR!!!!");
+    console.log(replacement.attachments[0]);
     //////// MY CODE
     let tilePosition = action.value.split(",");
     let row = tilePosition[0];
@@ -157,6 +159,17 @@ slackMessages.action('reveal', (payload) => {
         addFlag(row - 1, col - 1);
     }
     else if (action.name == "mine" && !flagModeOn) {
+        replacement.text = "";
+        for (let i = 0; i < gameSize; i++) {
+            for (let j = 0; j < gameSize; j++) {
+                if (replacement.attachments[i].name === "mine") {
+                    replacement.text += " :bomb:";
+                }
+                else {
+                    replacement.text += " :white_square:";
+                }
+            }
+        }
         web.chat.postMessage(payload.channel.id, '', {
             attachments: [
                 {
