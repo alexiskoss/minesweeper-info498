@@ -4,7 +4,7 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData = {};
 const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
-const slackMessages = createMessageAdapter('NNZ7tILgfzV7QOdWoPFgm9mx');
+const slackMessages = createMessageAdapter('sAcAKMnM7Y4x7RGLbYRdGwKp');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -26,22 +26,26 @@ slackMessages.action('welcome_button', (payload) => {
     const replacement = payload.original_message;
     let grid = "";
     let msgAttachments = [];
+    let gridNumber = 1;
+    // row
     for (let i = 1; i <= 5; i++) {
         let actions = [];
         let attachmentObj = {
             "fallback": "You are unable to start a game of Minesweeper.",
-            "callback_id": "revealed",
+            "callback_id": "reveal",
             "color": "#3AA3E3",
             "attachment_type": "default",
             "actions": []
         };
+        // columns
         for (let j = 1; j <= 5; j++) {
             let actionObj = {
                 "name": "square",
                 "text": ":white_square:",
                 "type": "button",
-                "value": "square"
+                "value": `${gridNumber}`
             };
+            gridNumber++;
             actions[j - 1] = actionObj;
         }
         attachmentObj.actions = actions;
@@ -64,6 +68,25 @@ slackMessages.action('welcome_button', (payload) => {
     }
     // Typically, you want to acknowledge the action and remove the interactive elements from the message
     delete replacement.attachments[0].actions;
+    return replacement;
+});
+// Attach action handlers by `callback_id`
+// (See: https://api.slack.com/docs/interactive-message-field-guide#attachment_fields)
+slackMessages.action('reveal', (payload) => {
+    console.log("PAYLOAD!!!!");
+    console.log(payload);
+    // `payload` is JSON that describes an interaction with a message.
+    console.log(`The user ${payload.user.name} in team ${payload.team.domain} pressed the welcome button`);
+    // The `actions` array contains details about the specific action (button press, menu selection, etc.)
+    const action = payload.actions[0];
+    console.log(`The button had name ${action.name} and value ${action.value}`);
+    // You should return a JSON object which describes a message to replace the original.
+    // Note that the payload contains a copy of the original message (`payload.original_message`).
+    const replacement = payload.original_message;
+    console.log("ORINGLA MSG1!!!!!!!!!");
+    console.log(replacement);
+    // Typically, you want to acknowledge the action and remove the interactive elements from the message
+    //delete replacement.attachments[0].actions;
     return replacement;
 });
 // Start the built-in HTTP server
