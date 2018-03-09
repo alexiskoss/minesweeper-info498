@@ -3,6 +3,7 @@ const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/clie
 const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData = {};
+const gameSize = 5;
 const bot_token = TOKEN;
 const slackMessages = createMessageAdapter(TOKEN);
 // Initialize the RTM client with the recommended settings. Using the defaults for these
@@ -33,7 +34,7 @@ slackMessages.action('play_again', (payload) => {
         for (let i = 1; i <= 5; i++) {
             let actions = [];
             let attachmentObj = {
-                "fallback": "You are unable to start a game of Minesweeper.",
+                "fallback": "You are unable to reveal a square.",
                 "callback_id": "reveal",
                 "color": "#3AA3E3",
                 "attachment_type": "default",
@@ -54,7 +55,7 @@ slackMessages.action('play_again', (payload) => {
                 }
                 else {
                     actionObj = {
-                        "name": "vacant",
+                        "name": "unrevealed",
                         "text": ":black_square:",
                         "type": "button",
                         "value": `${i}, ${j}`
@@ -101,7 +102,17 @@ slackMessages.action('reveal', (payload) => {
     console.log("ORINGLA MSG1!!!!!!!!!");
     console.log(replacement);
     //////// MY CODE
-    if (action.name == "vacant") {
+    let tilePosition = action.value.split(",");
+    let row = tilePosition[0];
+    let col = tilePosition[1];
+    if (action.name == "unrevealed") {
+        let tileAction = revealBlanks(row, col, action);
+        //replacement.attachments[col - 1].actions = tileAction;
+        console.log("TILE ACT");
+        console.log(tileAction);
+        console.log("REPLACEMENT COL - 1");
+        console.log(replacement.attachments[row - 1].actions[col - 1]);
+        replacement.attachments[row - 1].actions[col - 1] = tileAction;
     }
     else if (action.name == "bomb") {
         web.chat.postMessage(payload.channel.id, '', {
@@ -197,4 +208,31 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         }
     }
 });
+function revealBlanks(row, col, action) {
+    console.log("REVEAL LBANKS ------->>>>>>>");
+    if (row > 0 && row <= gameSize && col > 0 && col <= gameSize) {
+        //get bomb count
+        if (action.name != "revealed") {
+            console.log("REVEAL SQUARE-----!!!!!!!!!!");
+            action.name = "revealed";
+            action.text = ":white_square:";
+            return action;
+            /*
+            revealBlanks(row - 1, col, action);
+            revealBlanks(row +1, col, action);
+            revealBlanks(row, col - 1, action);
+            revealBlanks(row, col + 1, action);
+            revealBlanks(row - 1, col - 1, action);
+            revealBlanks(row - 1, col + 1, action);
+            revealBlanks(row + 1, col + 1, action);
+            revealBlanks(row + 1, col - 1, action);*/
+        }
+        else {
+            return; //either is revealed already or has adjacent bombs
+        }
+    }
+    else {
+        return; //not in bounds, so don't bother checking
+    }
+}
 rtm.start();
