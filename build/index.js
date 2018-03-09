@@ -5,8 +5,9 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 const appData = {};
 const gameSize = 5;
 let myTiles = [];
-const bot_token = TOKEN;
-const slackMessages = createMessageAdapter(TOKEN);
+const numbers = { 0: ":zero:", 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
+const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
+const slackMessages = createMessageAdapter('sAcAKMnM7Y4x7RGLbYRdGwKp');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -64,7 +65,7 @@ slackMessages.action('play_again', (payload) => {
                     //console.log("sdfksdfjk;alsjdfSDFJSDFKDSJKAFLJASDKJF-12-32-103-12")
                     //console.log(myTiles[i][j]);
                     myTiles[i - 1][j - 1].action = actionObj;
-                    myTiles[i - 1][j - 1].mineCount = -1;
+                    //myTiles[i - 1][j - 1].mineCount = -1;
                 }
                 else {
                     actionObj = {
@@ -84,8 +85,8 @@ slackMessages.action('play_again', (payload) => {
             msgAttachments.push(attachmentObj);
         }
         console.log("---------------________________-------->");
-        console.log(myTiles);
         countMines();
+        console.log(myTiles);
         web.chat.postMessage(payload.channel.id, '', {
             attachments: msgAttachments
         })
@@ -253,6 +254,11 @@ function revealBlanks(row, col) {
             revealBlanks(row + 1, col - 1);
         }
         else {
+            let mineCount = myTiles[row][col].mineCount;
+            if (mineCount > 0) {
+                myTiles[row][col].action.name = "revealed";
+                myTiles[row][col].action.text = numbers[mineCount];
+            }
             return; //either is revealed already or has adjacent bombs
         }
     }
@@ -263,27 +269,27 @@ function revealBlanks(row, col) {
 function countMines() {
     for (let i = 0; i < gameSize; i++) {
         for (let j = 0; j < gameSize; j++) {
-            if (myTiles[i][j].action.name != "mine") {
-                if ((i - 1) > 0) {
+            if (myTiles[i][j].action.name == "unrevealed") {
+                if ((i - 1) >= 0) {
                     myTiles[i][j].mineCount += myTiles[i - 1][j].action.name != "mine" ? 0 : 1;
-                    if ((j + 1) < gameSize) {
-                        myTiles[i][j].mineCount += myTiles[i - 1][j + 1].action.name != "mine" ? 0 : 1;
-                    }
-                    if ((j - 1) > 0) {
-                        myTiles[i][j].mineCount += myTiles[i - 1][j - 1].action.name != "mine" ? 0 : 1;
-                    }
                 }
-                if ((j - 1) > 0) {
+                if ((j + 1) < gameSize && (i - 1) >= 0) {
+                    myTiles[i][j].mineCount += myTiles[i - 1][j + 1].action.name != "mine" ? 0 : 1;
+                }
+                if ((j - 1) >= 0 && (i - 1) >= 0) {
+                    myTiles[i][j].mineCount += myTiles[i - 1][j - 1].action.name != "mine" ? 0 : 1;
+                }
+                if ((j - 1) >= 0) {
                     myTiles[i][j].mineCount += myTiles[i][j - 1].action.name != "mine" ? 0 : 1;
-                    if ((i + 1 < gameSize)) {
-                        myTiles[i][j].mineCount += myTiles[i + 1][j - 1].action.name != "mine" ? 0 : 1;
-                    }
+                }
+                if ((i + 1) < gameSize && (j - 1) >= 0) {
+                    myTiles[i][j].mineCount += myTiles[i + 1][j - 1].action.name != "mine" ? 0 : 1;
                 }
                 if ((i + 1) < gameSize) {
                     myTiles[i][j].mineCount += myTiles[i + 1][j].action.name != "mine" ? 0 : 1;
-                    if ((j + 1) < gameSize) {
-                        myTiles[i][j].mineCount += myTiles[i + 1][j + 1].action.name != "mine" ? 0 : 1;
-                    }
+                }
+                if ((j + 1) < gameSize && (i + 1) < gameSize) {
+                    myTiles[i][j].mineCount += myTiles[i + 1][j + 1].action.name != "mine" ? 0 : 1;
                 }
                 if ((j + 1) < gameSize) {
                     myTiles[i][j].mineCount += myTiles[i][j + 1].action.name != "mine" ? 0 : 1;
