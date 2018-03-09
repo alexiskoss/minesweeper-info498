@@ -56,7 +56,7 @@ slackMessages.action('play_again', (payload) => {
                 //20% chance for a mine to appear
                 if (mineChance <= 20) {
                     actionObj = {
-                        "name": "bomb",
+                        "name": "mine",
                         "text": ":bomb:",
                         "type": "button",
                         "value": `${i}, ${j}`
@@ -85,6 +85,7 @@ slackMessages.action('play_again', (payload) => {
         }
         console.log("---------------________________-------->");
         console.log(myTiles);
+        countMines();
         web.chat.postMessage(payload.channel.id, '', {
             attachments: msgAttachments
         })
@@ -238,7 +239,7 @@ function revealBlanks(row, col) {
     //console.log("REVEAL LBANKS ------->>>>>>>")
     if (row >= 0 && row < gameSize && col >= 0 && col < gameSize) {
         //get bomb count
-        if (myTiles[row][col].action.name != "revealed" && myTiles[row][col].mineCount != -1) {
+        if (myTiles[row][col].action.name == "unrevealed" && myTiles[row][col].mineCount == 0) {
             //console.log("REVEAL SQUARE-----!!!!!!!!!!")
             myTiles[row][col].action.name = "revealed";
             myTiles[row][col].action.text = ":white_square:";
@@ -257,6 +258,38 @@ function revealBlanks(row, col) {
     }
     else {
         return; //not in bounds, so don't bother checking
+    }
+}
+function countMines() {
+    for (let i = 0; i < gameSize; i++) {
+        for (let j = 0; j < gameSize; j++) {
+            if (myTiles[i][j].action.name != "mine") {
+                if ((i - 1) > 0) {
+                    myTiles[i][j].mineCount += myTiles[i - 1][j].action.name != "mine" ? 0 : 1;
+                    if ((j + 1) < gameSize) {
+                        myTiles[i][j].mineCount += myTiles[i - 1][j + 1].action.name != "mine" ? 0 : 1;
+                    }
+                    if ((j - 1) > 0) {
+                        myTiles[i][j].mineCount += myTiles[i - 1][j - 1].action.name != "mine" ? 0 : 1;
+                    }
+                }
+                if ((j - 1) > 0) {
+                    myTiles[i][j].mineCount += myTiles[i][j - 1].action.name != "mine" ? 0 : 1;
+                    if ((i + 1 < gameSize)) {
+                        myTiles[i][j].mineCount += myTiles[i + 1][j - 1].action.name != "mine" ? 0 : 1;
+                    }
+                }
+                if ((i + 1) < gameSize) {
+                    myTiles[i][j].mineCount += myTiles[i + 1][j].action.name != "mine" ? 0 : 1;
+                    if ((j + 1) < gameSize) {
+                        myTiles[i][j].mineCount += myTiles[i + 1][j + 1].action.name != "mine" ? 0 : 1;
+                    }
+                }
+                if ((j + 1) < gameSize) {
+                    myTiles[i][j].mineCount += myTiles[i][j + 1].action.name != "mine" ? 0 : 1;
+                }
+            }
+        }
     }
 }
 rtm.start();

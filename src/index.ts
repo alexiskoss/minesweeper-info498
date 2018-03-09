@@ -4,7 +4,7 @@ const { createMessageAdapter } = require('@slack/interactive-messages');
 // Cache of data
 const appData: { [key: string]: any } = {};
 const gameSize: number = 5;
-let myTiles:any[] = [];
+let myTiles: any[] = [];
 
 const bot_token = TOKEN;
 const slackMessages = createMessageAdapter(TOKEN);
@@ -38,18 +38,18 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
     let grid = "";
 
     let msgAttachments = [];
-    
+
     //make array of the game riles
     myTiles = new Array(gameSize)
     for (let i = 0; i < gameSize; i++) {
-        myTiles[i]=new Array(gameSize)
-        for(let j = 0; j < gameSize; j++) {
-          myTiles[i][j] = {action: {}, mineCount: 0};
-        }
+      myTiles[i] = new Array(gameSize)
+      for (let j = 0; j < gameSize; j++) {
+        myTiles[i][j] = { action: {}, mineCount: 0 };
+      }
     }
 
     let gridNumber: number = 1;
-  
+
     // row
     for (let i = 1; i <= 5; i++) {
       let actions = [];
@@ -70,7 +70,7 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
         //20% chance for a mine to appear
         if (mineChance <= 20) {
           actionObj = {
-            "name": "bomb",
+            "name": "mine",
             "text": ":bomb:",
             "type": "button",
             "value": `${i}, ${j}`
@@ -97,8 +97,11 @@ slackMessages.action('play_again', (payload: { [key: string]: any }) => {
       msgAttachments.push(attachmentObj);
     }
 
+
     console.log("---------------________________-------->")
     console.log(myTiles);
+    countMines();
+
     web.chat.postMessage(payload.channel.id, '', {
       attachments: msgAttachments
     })
@@ -140,11 +143,12 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
 
   //////// MY CODE
   let tilePosition = action.value.split(",");
-  let row:number = tilePosition[0];
-  let col:number = tilePosition[1];
+  let row: number = tilePosition[0];
+  let col: number = tilePosition[1];
 
   console.log("%%%%%%%%")
   console.log(action.name);
+
   if (action.name == "unrevealed") { // MAKE CONSTANTS
     revealBlanks(row - 1, col - 1)
     //replacement.attachments[col - 1].actions = tileAction;
@@ -154,8 +158,8 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
     console.log("****************************")
     //console.log(replacement.attachments[row - 1].actions[col - 1]);
     //console.log(myTiles[row-1][col-1]);
-    for(let i = 0; i < gameSize; i++) {
-      for(let j = 0; j < gameSize; j++) {
+    for (let i = 0; i < gameSize; i++) {
+      for (let j = 0; j < gameSize; j++) {
         replacement.attachments[i].actions[j] = myTiles[i][j].action;
       }
     }
@@ -262,17 +266,17 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message: { [key: string]: a
   }
 });
 
-function revealBlanks(row:number, col:number) {
+function revealBlanks(row: number, col: number) {
   //console.log("REVEAL LBANKS ------->>>>>>>")
-  if(row >= 0  && row < gameSize && col >= 0 && col < gameSize) {
+  if (row >= 0 && row < gameSize && col >= 0 && col < gameSize) {
     //get bomb count
-    if(myTiles[row][col].action.name != "revealed" && myTiles[row][col].mineCount != -1) {
+    if (myTiles[row][col].action.name == "unrevealed" && myTiles[row][col].mineCount == 0) {
       //console.log("REVEAL SQUARE-----!!!!!!!!!!")
       myTiles[row][col].action.name = "revealed";
-      myTiles[row][col].action.text =":white_square:"
+      myTiles[row][col].action.text = ":white_square:"
 
       revealBlanks(row - 1, col);
-      revealBlanks(row +1, col);
+      revealBlanks(row + 1, col);
       revealBlanks(row, col - 1);
       revealBlanks(row, col + 1);
       revealBlanks(row - 1, col - 1);
@@ -285,6 +289,43 @@ function revealBlanks(row:number, col:number) {
     }
   } else {
     return; //not in bounds, so don't bother checking
+  }
+}
+
+function countMines() {
+  for (let i = 0; i < gameSize; i++) {
+    for (let j = 0; j < gameSize; j++) {
+      if (myTiles[i][j].action.name != "mine") {
+
+        if((i-1) > 0) {
+          myTiles[i][j].mineCount += myTiles[i - 1][j].action.name != "mine" ? 0 : 1;
+          if((j+1) < gameSize){
+            myTiles[i][j].mineCount += myTiles[i - 1][j + 1].action.name != "mine" ? 0 : 1;
+          } 
+          if((j-1) > 0) {
+            myTiles[i][j].mineCount += myTiles[i - 1][j - 1].action.name != "mine" ? 0 : 1;
+          }
+        }
+
+        if((j-1) > 0) {
+          myTiles[i][j].mineCount += myTiles[i][j - 1].action.name != "mine" ? 0 : 1;
+          if((i+1 < gameSize)) {
+            myTiles[i][j].mineCount += myTiles[i + 1][j - 1].action.name != "mine" ? 0 : 1;
+          }
+        }
+
+        if((i+1) < gameSize) {
+          myTiles[i][j].mineCount += myTiles[i + 1][j].action.name != "mine" ? 0 : 1;
+          if((j+1) < gameSize) {
+            myTiles[i][j].mineCount += myTiles[i + 1][j + 1].action.name != "mine" ? 0 : 1;
+          }
+        }
+
+        if((j+1) < gameSize) {
+          myTiles[i][j].mineCount += myTiles[i][j + 1].action.name != "mine" ? 0 : 1;
+        }
+      }
+    }
   }
 }
 
