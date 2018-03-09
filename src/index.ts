@@ -8,8 +8,8 @@ let myTiles: any[] = [];
 const numbers: { [key: number]: string } = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
 let flagModeOn: boolean = false;
 
-const bot_token = 'TOKEN';
-const slackMessages = createMessageAdapter('TOKEN');
+const bot_token = TOKEN;
+const slackMessages = createMessageAdapter(TOKEN);
 
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
@@ -183,14 +183,20 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
       addFlag(row - 1, col - 1);
   } else if (action.name == "mine" && !flagModeOn) {
     replacement.text = "";
+    let mineClicked = action.value.split(",");
     for(let i:number = 0; i < gameSize; i++) {
       for(let j:number = 0; j < gameSize; j++) {
-        if(replacement.attachments[i].name === "mine") {
-          replacement.text += " :bomb:";
+        if(replacement.attachments[i].actions[j].name === "mine") {
+          if(i == (parseInt(mineClicked[0]) - 1) && j == (parseInt(mineClicked[1]) - 1)) {
+            replacement.text += " :collision:";
+          } else {
+            replacement.text += " :bomb:";
+          }
         } else {
           replacement.text += " :white_square:";
         }
       }
+      replacement.text += "\n";
     }
     web.chat.postMessage(payload.channel.id, '', {
       attachments: [
