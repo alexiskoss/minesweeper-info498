@@ -7,8 +7,8 @@ const gameSize = 5;
 let myTiles = [];
 const numbers = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
 let flagModeOn = false;
-const bot_token = 'xoxb-326564398054-lUIEzovkF6pUtbzuNpIPF1um';
-const slackMessages = createMessageAdapter('Gi5r3GB34JOzDArijtsobKYz');
+const bot_token = TOKEN;
+const slackMessages = createMessageAdapter(TOKEN);
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
