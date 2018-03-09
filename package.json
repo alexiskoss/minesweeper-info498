@@ -1,0 +1,19 @@
+{
+  "name": "minesweeper_slackbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/client": "^3.16.0",
+    "@slack/interactive-messages": "^0.2.0",
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "localtunnel": "^1.8.3",
+    "slack-bot-commands": "^1.0.4"
+  }
+}
