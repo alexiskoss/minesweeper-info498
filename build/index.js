@@ -24,12 +24,14 @@ slackMessages.action('play_again', (payload) => {
     console.log(`The user ${payload.user.name} in team ${payload.team.domain} pressed the welcome button`);
     // The `actions` array contains details about the specific action (button press, menu selection, etc.)
     const action = payload.actions[0];
+    console.log("NEED ACTION");
+    console.log(action);
     console.log(`The button had name ${action.name} and value ${action.value}`);
     // You should return a JSON object which describes a message to replace the original.
     // Note that the payload contains a copy of the original message (`payload.original_message`).
     const replacement = payload.original_message;
     if (action.value === 'start') {
-        console.log("THIS REPLACEMENT 2348923849082938409283");
+        //console.log("THIS REPLACEMENT 2348923849082938409283")
         delete replacement.attachments[0].text;
         replacement.text = `${payload.user.name} started a new game of Minesweeper.`;
         let grid = "";
@@ -120,7 +122,7 @@ slackMessages.action('play_again', (payload) => {
         delete replacement.attachments[0].text;
     }
     // Typically, you want to acknowledge the action and remove the interactive elements from the message
-    delete replacement.attachments[0].actions;
+    //delete replacement.attachments[0].actions;
     return replacement;
 });
 // Attach action handlers by `callback_id`
@@ -134,7 +136,12 @@ slackMessages.action('reveal', (payload) => {
     console.log(`The user ${payload.user.name} in team ${payload.team.domain} pressed the welcome button`);
     // The `actions` array contains details about the specific action (button press, menu selection, etc.)
     const action = payload.actions[0];
+    //console.log("PALYLOAD ACTION PLAAYLOAOKLSFLSKADFL")
+    //console.log(payload.actions);
     console.log(`The button had name ${action.name} and value ${action.value}`);
+    let row2 = action.value.split(",")[0].trim();
+    let col2 = action.value.split(",")[1].trim();
+    const action2 = payload.original_message.attachments[row2 - 1].actions[col2 - 1];
     // You should return a JSON object which describes a message to replace the original.
     // Note that the payload contains a copy of the original message (`payload.original_message`).
     const replacement = payload.original_message;
@@ -144,8 +151,8 @@ slackMessages.action('reveal', (payload) => {
     console.log(replacement.attachments[0]);
     //////// MY CODE
     let tilePosition = action.value.split(",");
-    let row = tilePosition[0];
-    let col = tilePosition[1];
+    let row = parseInt(tilePosition[0].trim());
+    let col = parseInt(tilePosition[1].trim());
     console.log("%%%%%%%%");
     console.log(action.name);
     for (let i = 0; i < gameSize; i++) {
@@ -153,30 +160,46 @@ slackMessages.action('reveal', (payload) => {
             replacement.attachments[i].actions[j] = myTiles[i][j].action;
         }
     }
+    console.log("ACTION TEXT ACTIONT EXT");
+    console.log(action2);
     if (action.name == "unrevealed") {
         if (!flagModeOn) {
             revealBlanks(row - 1, col - 1);
         }
         else if (flagModeOn) {
-            addFlag(row - 1, col - 1);
+            if (action2.text != ":triangular_flag_on_post:") {
+                addFlag(row - 1, col - 1);
+            }
+            else {
+                removeFlag(row - 1, col - 1);
+            }
         }
         //replacement.attachments[row - 1].actions[col - 1] = myTiles[row - 1][col - 1].action;
     }
     else if (action.name == "mine" && flagModeOn) {
-        addFlag(row - 1, col - 1);
+        if (action2.text != ":triangular_flag_on_post:") {
+            addFlag(row - 1, col - 1);
+        }
+        else {
+            removeFlag(row - 1, col - 1);
+        }
     }
     else if (action.name == "mine" && !flagModeOn) {
         replacement.text = "";
         let mineClicked = action.value.split(",");
         for (let i = 0; i < gameSize; i++) {
             for (let j = 0; j < gameSize; j++) {
-                if (replacement.attachments[i].actions[j].name === "mine") {
-                    if (i == (parseInt(mineClicked[0]) - 1) && j == (parseInt(mineClicked[1]) - 1)) {
-                        replacement.text += " :collision:";
-                    }
-                    else {
-                        replacement.text += " :bomb:";
-                    }
+                console.log("skjskajsfkj293891823098190283908190823908129083018908219038190");
+                console.log(replacement.attachments[i].actions[j].text);
+                if (replacement.attachments[i].actions[j].text == ":triangular_flag_on_post:") {
+                    replacement.text += " :bomb:";
+                }
+                else if (replacement.attachments[i].actions[j].name === "mine") {
+                    //if(i == (parseInt(mineClicked[0]) - 1) && j == (parseInt(mineClicked[1]) - 1)) {
+                    replacement.text += " :boom:";
+                    //} else {
+                    //replacement.text += " :bomb:";
+                    //}
                 }
                 else {
                     replacement.text += " :white_square:";
@@ -245,7 +268,7 @@ slackMessages.action('flag_mode', (payload) => {
     if (replacement.attachments[gameSize].actions[0].name == "flag a square") {
         flagModeOn = true;
         replacement.attachments[gameSize].actions[0].name = "exit flag mode";
-        replacement.attachments[gameSize].actions[0].text = "Exit flag mode?";
+        replacement.attachments[gameSize].actions[0].text = "Exit flag mode";
         replacement.attachments[gameSize].actions[0].value = "exit flag mode";
     }
     else if (replacement.attachments[gameSize].actions[0].name == "exit flag mode") {
@@ -326,12 +349,18 @@ function checkWin() {
 }
 function addFlag(row, col) {
     if (myTiles[row][col].action.name == "unrevealed") {
-        myTiles[row][col].action.name = "unrevealed";
         myTiles[row][col].action.text = ":triangular_flag_on_post:";
     }
     else if (myTiles[row][col].action.name == "mine") {
-        myTiles[row][col].action.name = "mine";
         myTiles[row][col].action.text = ":triangular_flag_on_post:";
+    }
+}
+function removeFlag(row, col) {
+    console.log("REMOVE FLAG CONSOLE");
+    console.log(row + " " + col);
+    console.log(myTiles[row][col].action);
+    if (myTiles[row][col].action.text == ":triangular_flag_on_post:") {
+        myTiles[row][col].action.text = ":black_square:";
     }
 }
 function revealBlanks(row, col) {
