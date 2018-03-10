@@ -7,8 +7,8 @@ const gameSize = 5;
 let myTiles = [];
 const numbers = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:" };
 let flagModeOn = false;
-const bot_token = TOKEN;
-const slackMessages = createMessageAdapter(TOKEN);
+const bot_token = 'TOKEN';
+const slackMessages = createMessageAdapter('TOKEN');
 // Initialize the RTM client with the recommended settings. Using the defaults for these
 // settings is deprecated.
 const rtm = new RtmClient(bot_token, {
@@ -29,6 +29,8 @@ slackMessages.action('play_again', (payload) => {
     // Note that the payload contains a copy of the original message (`payload.original_message`).
     const replacement = payload.original_message;
     if (action.value === 'start') {
+        console.log("THIS REPLACEMENT 2348923849082938409283");
+        delete replacement.attachments[0].text;
         replacement.text = `${payload.user.name} started a new game of Minesweeper.`;
         let grid = "";
         let msgAttachments = [];
@@ -146,6 +148,11 @@ slackMessages.action('reveal', (payload) => {
     let col = tilePosition[1];
     console.log("%%%%%%%%");
     console.log(action.name);
+    for (let i = 0; i < gameSize; i++) {
+        for (let j = 0; j < gameSize; j++) {
+            replacement.attachments[i].actions[j] = myTiles[i][j].action;
+        }
+    }
     if (action.name == "unrevealed") {
         if (!flagModeOn) {
             revealBlanks(row - 1, col - 1);
@@ -177,46 +184,47 @@ slackMessages.action('reveal', (payload) => {
             }
             replacement.text += "\n";
         }
-        web.chat.postMessage(payload.channel.id, '', {
-            attachments: [
-                {
-                    "text": "Test your luck again?",
-                    "fallback": "Unable to choose command.",
-                    "callback_id": "play_again",
-                    "color": "#3AA3E3",
-                    "attachment_type": "default",
-                    "actions": [
-                        {
-                            "name": "play again",
-                            "text": "Play Again",
-                            "type": "button",
-                            "value": "play again"
-                        },
-                        {
-                            "name": "quit",
-                            "text": "Quit",
-                            "type": "button",
-                            "style": "danger",
-                            "value": "quit"
-                        }
-                    ]
-                }
-            ]
-        })
-            .then((res) => {
-            // `res` contains information about the posted message
-            console.log(res);
-            console.log('Message sent: ', res.ts);
-        })
-            .catch(console.error);
-    }
-    for (let i = 0; i < gameSize; i++) {
-        for (let j = 0; j < gameSize; j++) {
-            replacement.attachments[i].actions[j] = myTiles[i][j].action;
+        replacement.text += "You lost! :sob:";
+        playAgain(payload.channel.id);
+        console.log("REPLACEEEEEEMMMMENENENNENTNTTNT");
+        console.log(replacement);
+        for (let i = 0; i <= gameSize; i++) {
+            // Typically, you want to acknowledge the action and remove the interactive elements from the message
+            delete replacement.attachments[i].actions;
         }
     }
-    // Typically, you want to acknowledge the action and remove the interactive elements from the message
-    //delete replacement.attachments[0].actions;
+    //check win
+    let didPlayerWin = checkWin();
+    if (didPlayerWin) {
+        console.log("WINNER!!!!!------1!!!!--1-1-1-1--1");
+        replacement.text = "";
+        let mineClicked = action.value.split(",");
+        for (let i = 0; i < gameSize; i++) {
+            for (let j = 0; j < gameSize; j++) {
+                if (replacement.attachments[i].actions[j].name === "mine") {
+                    if (i == (parseInt(mineClicked[0]) - 1) && j == (parseInt(mineClicked[1]) - 1)) {
+                        replacement.text += " :collision:";
+                    }
+                    else {
+                        replacement.text += " :bomb:";
+                    }
+                }
+                else {
+                    replacement.text += " :white_square:";
+                }
+            }
+            replacement.text += "\n";
+        }
+        replacement.text += "Congratulations, you won! :tada:";
+        playAgain(payload.channel.id);
+        for (let i = 0; i <= gameSize; i++) {
+            // Typically, you want to acknowledge the action and remove the interactive elements from the message
+            delete replacement.attachments[i].actions;
+        }
+        //show emoji only board with vacant squares + bombs (no explosions)
+        //get rid of buttons
+        //show congratulation message 
+    }
     return replacement;
 });
 // Attach action handlers by `callback_id`
@@ -251,7 +259,7 @@ slackMessages.action('flag_mode', (payload) => {
     return replacement;
 });
 // Start the built-in HTTP server
-const port = process.env.PORT || 3000;
+const port = 3000;
 slackMessages.start(port).then(() => {
     console.log(`server listening on port ${port}`);
 });
@@ -306,9 +314,17 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
         }
     }
 });
+function checkWin() {
+    for (let i = 0; i < gameSize; i++) {
+        for (let j = 0; j < gameSize; j++) {
+            if (myTiles[i][j].action.name == "unrevealed") {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 function addFlag(row, col) {
-    console.log("MY TILES IN ADD FLAG");
-    console.log(myTiles[row][col].action.name);
     if (myTiles[row][col].action.name == "unrevealed") {
         myTiles[row][col].action.name = "unrevealed";
         myTiles[row][col].action.text = ":triangular_flag_on_post:";
@@ -379,5 +395,39 @@ function countMines() {
             }
         }
     }
+}
+function playAgain(channelId) {
+    web.chat.postMessage(channelId, '', {
+        attachments: [
+            {
+                "text": "Test your luck again?",
+                "fallback": "Unable to choose command.",
+                "callback_id": "play_again",
+                "color": "#3AA3E3",
+                "attachment_type": "default",
+                "actions": [
+                    {
+                        "name": "start",
+                        "text": "Play Again",
+                        "type": "button",
+                        "value": "start"
+                    },
+                    {
+                        "name": "quit",
+                        "text": "Quit",
+                        "type": "button",
+                        "style": "danger",
+                        "value": "quit"
+                    }
+                ]
+            }
+        ]
+    })
+        .then((res) => {
+        // `res` contains information about the posted message
+        console.log(res);
+        console.log('Message sent: ', res.ts);
+    })
+        .catch(console.error);
 }
 rtm.start();
