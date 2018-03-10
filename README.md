@@ -40,13 +40,15 @@ Click the **Install App to Workspace** button and click **Authorize** on the pro
 
 ![bot token](/img/9.png?raw=true)
 
-Before you can interact with our Minesweeper bot on your Workspace, you must first edit the **index.js** file we provided in the **src** folder of **minesweeper-info498**. Open this file and replace the **TOKEN** in **const bot_token** on line 5 with the bot token you just copied. Make sure it is surrounded by single parentheses (').
+Before you can interact with our Minesweeper bot on your Workspace, you must first edit the **index.ts** file we provided in the **src** folder of **minesweeper-info498**. Open this file and replace the **TOKEN** in **const bot_token** with the bot token you just copied. Make sure it is surrounded by single parentheses (').
 
 Next, click on the **Basic Information** tab in the side bar of your app settings. Scroll down until you see the **App Credentials** settings and copy the **verification token** here. 
 
 ![verification token](/img/10.png?raw=true)
 
-Replace the **TOKEN** in **const slackMessages** on line 6 with the verification token you just copied.
+Replace the **TOKEN** in **const slackMessages** with the verification token you just copied. Make sure it is surrounded by single parentheses (').
+
+Open a new terminal window and **cd** into the **minesweeper-info498** directory if you're haven't already. Run the command: **tsc** to compile the typescript file you just edited and then run the command: **node build/index.js**. Now that you have both the node file and ngrok server running, you are ready to go!
 
 Now you have successfully created the basic app support our code requires to run on Slack.
 
