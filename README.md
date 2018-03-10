@@ -63,6 +63,7 @@ This is where your main interaction with our bot will take place. @ mention the 
 Keep following the on screen instructions and you'll be playing a traditional game of Minesweeper! 
 
 **Emoji guide**:
+
 ⬛️ = square has **not** been uncovered
 
 ⬜️ = square has been uncovered
