@@ -62,10 +62,16 @@ This is where your main interaction with our bot will take place. @ mention the 
 
 Keep following the on screen instructions and you'll be playing a traditional game of Minesweeper! 
 
-Emoji guide:
+**Emoji guide**:
 ⬛️ = square has **not** been uncovered
+
 ⬜️ = square has been uncovered
+
 1️⃣ = all number tiles indicate how many bombs are in the 8 squares surrounding the square unrevealed
+
 🚩 = user has voluntarily flagged the square as a potential bomb
+
 💥 = user did not flag this bomb, exploded
+
 💣 = user flagged this bomb correctly, didn't explode
+
