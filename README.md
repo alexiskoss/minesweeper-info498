@@ -14,7 +14,7 @@ Next, you will be brought to the following page. Please click on the **Bots** ti
 
 ![click on bots](/img/2.png?raw=true)
 
-Please give your new bot the display name of **Minesweeper** and the username of **minesweeper**. 
+Click **Add Bot** and give your new bot the display name of **Minesweeper** and the username of **minesweeper**. 
 
 ![create bot](/img/3.png?raw=true)
 
@@ -24,7 +24,7 @@ After successfully adding a bot, click on the **Basic Information** tab in the s
 
 Click the enable interactive components button on the new page and this is where we must go and generate a ngrok URL that makes an "instant, secure URL to your localhost server through any NAT or firewall." This is the URL that will be placed in the **request URL** text field. 
 
-We've included the ngrok executable in our repo, so simply open a new terminal window and **cd** into the "minesweeper-info498" folder on your system and run the following command **./ngrok http 3000**. Please use port 3000, as our application relies on this port. You should now see a similar screen to the following:
+We've included the ngrok executable in our repo, so simply open a new terminal window and **cd** into the "minesweeper-info498" folder on your system and run the following command "**./ngrok http 3000**". Please use port 3000, as our application relies on this port. You should now see a similar screen to the following:
 
 ![ngrok terminal](/img/5.png?raw=true)
 
@@ -32,4 +32,14 @@ We've included the ngrok executable in our repo, so simply open a new terminal w
 
 ![interactive components page](/img/6.png?raw=true)
 
-Once again, click on the **Basic Information** tab in the side bar to navigate back to the main application page.
+Once again, click on the **Basic Information** tab in the side bar to navigate back to the main application page. Click on the **Install your app to your workspace** drop down menu.
+
+![install app](/img/7.png?raw=true)
+
+Click the **Install App to Workspace** button and click **Authorize** on the proceeding page. Now you have successfully created the basic app support our code requires to run on Slack.
+
+Please proceed to the main page of your Slack Workspace. In the side bar where your channels and direct messages are located, you should see a new heading called **Apps** and beneath it a new DM with a bot called **Minesweeper**. 
+
+![slack sidebar](/img/8.png?raw=true)
+
+This is where your main interaction with our bot will take place. 
