@@ -1,11 +1,8 @@
 export interface ICellFactory {
-    //abstract method
     createCell(name: string, value: string):ActionObj|null;
   }
   
   export class CellFactory implements ICellFactory {
-    // equilateral triangle code: 
-    // https://stackoverflow.com/questions/8935930/create-equilateral-triangle-in-the-middle-of-canvas
     createCell(name: string, value: string):ActionObj|null {
       if(name== "mine") {
         return new Action(name, ":bomb:", "button", value);
@@ -20,7 +17,6 @@ export interface ICellFactory {
       return null;
     }
   }
-
 
 export interface ActionObj {
     name: string;
