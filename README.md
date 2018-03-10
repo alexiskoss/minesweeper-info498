@@ -36,10 +36,36 @@ Once again, click on the **Basic Information** tab in the side bar to navigate b
 
 ![install app](/img/7.png?raw=true)
 
-Click the **Install App to Workspace** button and click **Authorize** on the proceeding page. Now you have successfully created the basic app support our code requires to run on Slack.
+Click the **Install App to Workspace** button and click **Authorize** on the proceeding page. Now please click on **OAuth & Permissions** in the side bar of your app settings. On this page, you will see something like the following, you need to copy the **Bot User OAuth Access Token**, which begins with **xoxb**.
+
+![bot token](/img/9.png?raw=true)
+
+Before you can interact with our Minesweeper bot on your Workspace, you must first edit the **index.js** file we provided in the **src** folder of **minesweeper-info498**. Open this file and replace the **TOKEN** in **const bot_token** on line 5 with the bot token you just copied. Make sure it is surrounded by single parentheses (').
+
+Next, click on the **Basic Information** tab in the side bar of your app settings. Scroll down until you see the **App Credentials** settings and copy the **verification token** here. 
+
+![verification token](/img/10.png?raw=true)
+
+Replace the **TOKEN** in **const slackMessages** on line 6 with the verification token you just copied.
+
+Now you have successfully created the basic app support our code requires to run on Slack.
+
+## How To Instructions
 
 Please proceed to the main page of your Slack Workspace. In the side bar where your channels and direct messages are located, you should see a new heading called **Apps** and beneath it a new DM with a bot called **Minesweeper**. 
 
 ![slack sidebar](/img/8.png?raw=true)
 
-This is where your main interaction with our bot will take place. 
+This is where your main interaction with our bot will take place. @ mention the bot by saying **@Minesweeper start game** and the bot will prompt you to play a game of Minesweeper as shown below.
+
+![minesweeper game](/img/11.png?raw=true)
+
+Keep following the on screen instructions and you'll be playing a traditional game of Minesweeper! 
+
+Emoji guide:
+⬛️ = square has **not** been uncovered
+⬜️ = square has been uncovered
+1️⃣ = all number tiles indicate how many bombs are in the 8 squares surrounding the square unrevealed
+🚩 = user has voluntarily flagged the square as a potential bomb
+💥 = user did not flag this bomb, exploded
+💣 = user flagged this bomb correctly, didn't explode
