@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const cellFactory_1 = require("./cellFactory");
+const flag_1 = require("./flag");
 const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/client');
 const { createMessageAdapter } = require('@slack/interactive-messages');
 //IMPORTANT! SLACK TOKENS GO HERE
@@ -30,10 +31,11 @@ slackMessages.action('play', (payload) => {
         delete replacementMsg.attachments[0].text; //deletes original message attachments (aka buttons)
         replacementMsg.text = `${payload.user.name} started a new game of Minesweeper.`;
         let msgAttachments = [];
+        let flag = new flag_1.Flag(gameTiles);
         intializeGrid();
         //add to a Slack message
         let grid = populateGrid();
-        let flagModeButton = createFlagMode();
+        let flagModeButton = flag.createFlagMode();
         msgAttachments = grid.concat(flagModeButton);
         countMines();
         web.chat.postMessage(payload.channel.id, '', {
@@ -58,6 +60,7 @@ slackMessages.action('reveal', (payload) => {
     const replacementMsg = payload.original_message;
     gameTiles = user[payload.user.id].grid;
     flagModeOn = user[payload.user.id].flag;
+    let flag = new flag_1.Flag(gameTiles);
     let tilePosition = action.value.split(",");
     let row = parseInt(tilePosition[0].trim()) - 1;
     let col = parseInt(tilePosition[1].trim()) - 1;
@@ -74,19 +77,19 @@ slackMessages.action('reveal', (payload) => {
         }
         else if (flagModeOn) {
             if (tileClicked.action.text != ":triangular_flag_on_post:") {
-                addFlag(row, col);
+                flag.addFlag(row, col);
             }
             else {
-                removeFlag(row, col);
+                flag.removeFlag(row, col);
             }
         }
     }
     else if (tileClicked.action.name == "mine" && flagModeOn) {
         if (tileClicked.action.text != ":triangular_flag_on_post:") {
-            addFlag(row, col);
+            flag.addFlag(row, col);
         }
         else {
-            removeFlag(row, col);
+            flag.removeFlag(row, col);
         }
     }
     else if (tileClicked.action.name == "mine" && !flagModeOn) {
@@ -196,20 +199,6 @@ function populateGrid() {
     }
     return msgAttachments;
 }
-function createFlagMode() {
-    let msgAttachments = [];
-    let flagAttachmentObj = {
-        "fallback": "You are unable to change flag mode.",
-        "callback_id": "flag_mode",
-        "color": "#3AA3E3",
-        "attachment_type": "default",
-        "actions": [
-            cellFactory.createCell("flag a square", "flag a square")
-        ]
-    };
-    msgAttachments.push(flagAttachmentObj);
-    return msgAttachments;
-}
 function revealEmptyCells(row, col) {
     if (row >= 0 && row < maxRowSize && col >= 0 && col < maxRowSize) {
         let gridCell = gameTiles[row][col].action;
@@ -280,21 +269,6 @@ function checkWin() {
         }
     }
     return true;
-}
-function addFlag(row, col) {
-    let gridCell = gameTiles[row][col].action;
-    if (gridCell.name == "unrevealed") {
-        gridCell.text = ":triangular_flag_on_post:";
-    }
-    else if (gridCell.name == "mine") {
-        gridCell.text = ":triangular_flag_on_post:";
-    }
-}
-function removeFlag(row, col) {
-    let gridCell = gameTiles[row][col].action;
-    if (gridCell.text == ":triangular_flag_on_post:") {
-        gridCell.text = ":black_square:";
-    }
 }
 function playAgain(channelId, replacementMsg) {
     web.chat.postMessage(channelId, '', {
