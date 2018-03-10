@@ -58,7 +58,9 @@ Please proceed to the main page of your Slack Workspace. In the side bar where y
 
 ![slack sidebar](/img/8.png?raw=true)
 
-This is where your main interaction with our bot will take place. @ mention the bot by saying **@Minesweeper start game** and the bot will prompt you to play a game of Minesweeper as shown below.
+This is where your main interaction with our bot will take place. @ mention the bot by saying **@Minesweeper start game** and the bot will prompt you to play a game of Minesweeper as shown below. 
+
+**side note:* you can actually @ mention the bot in any channel that it's a member of, but the game will always start in the private DM between you and the app itself!
 
 ![minesweeper game](/img/11.png?raw=true)
 
