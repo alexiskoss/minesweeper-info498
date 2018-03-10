@@ -1,4 +1,6 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const cellFactory_1 = require("./cellFactory");
 const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/client');
 const { createMessageAdapter } = require('@slack/interactive-messages');
 //IMPORTANT! SLACK TOKENS GO HERE
@@ -8,6 +10,7 @@ const appData = {}; // cache of data
 const maxRowSize = 5; //can be any number within reason
 const maxColSize = 5; //because of Slack limitations, the max column size can only be 5 OR less.
 const numbers = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:", 6: ":six:", 7: ":seven:", 8: ":eight:", 9: ":nine:" };
+const cellFactory = new cellFactory_1.CellFactory();
 let gameTiles = [];
 let flagModeOn = false;
 let user = {}; //stores user state for multiple players at a time
@@ -17,6 +20,7 @@ const rtm = new RtmClient(bot_token, {
     useRtmConnect: true,
 });
 const web = new WebClient(bot_token);
+// callback for app "start game" buttons
 slackMessages.action('play', (payload) => {
     gameTiles = [];
     flagModeOn = false;
@@ -48,6 +52,7 @@ slackMessages.action('play', (payload) => {
     delete replacementMsg.attachments[0].actions;
     return replacementMsg;
 });
+// callback for app buttons that haven't been revealed
 slackMessages.action('reveal', (payload) => {
     const action = payload.actions[0];
     const replacementMsg = payload.original_message;
@@ -129,6 +134,7 @@ slackMessages.action('reveal', (payload) => {
     user[payload.user.id] = { "grid": gameTiles, "flag": flagModeOn };
     return replacementMsg;
 });
+// callback for flag mode app button
 slackMessages.action('flag_mode', (payload) => {
     const action = payload.actions[0];
     const replacementMsg = payload.original_message;
@@ -172,25 +178,15 @@ function populateGrid() {
         };
         // columns
         for (let gridCol = 0; gridCol < maxColSize; gridCol++) {
-            let actionObj = {};
+            let actionObj;
             let mineChance = Math.floor(Math.random() * 100) + 1;
             //20% chance for a mine to appear
             if (mineChance <= 20) {
-                actionObj = {
-                    "name": "mine",
-                    "text": ":bomb:",
-                    "type": "button",
-                    "value": `${gridRow + 1}, ${gridCol + 1}`
-                };
+                actionObj = cellFactory.createCell("mine", `${gridRow + 1}, ${gridCol + 1}`);
                 gameTiles[gridRow][gridCol].action = actionObj;
             }
             else {
-                actionObj = {
-                    "name": "unrevealed",
-                    "text": ":black_square:",
-                    "type": "button",
-                    "value": `${gridRow + 1}, ${gridCol + 1}`
-                };
+                actionObj = cellFactory.createCell("unrevealed", `${gridRow + 1}, ${gridCol + 1}`);
                 gameTiles[gridRow][gridCol].action = actionObj;
             }
             actions[gridCol] = actionObj;
@@ -208,12 +204,7 @@ function createFlagMode() {
         "color": "#3AA3E3",
         "attachment_type": "default",
         "actions": [
-            {
-                "name": "flag a square",
-                "text": "Enter flag mode :triangular_flag_on_post:",
-                "type": "button",
-                "value": "flag a square"
-            }
+            cellFactory.createCell("flag a square", "flag a square")
         ]
     };
     msgAttachments.push(flagAttachmentObj);
@@ -315,12 +306,7 @@ function playAgain(channelId, replacementMsg) {
                 "color": "#3AA3E3",
                 "attachment_type": "default",
                 "actions": [
-                    {
-                        "name": "start",
-                        "text": "Play Again",
-                        "type": "button",
-                        "value": "start"
-                    },
+                    cellFactory.createCell("start", "start"),
                     {
                         "name": "quit",
                         "text": "Quit",
@@ -367,12 +353,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
                             "color": "#3AA3E3",
                             "attachment_type": "default",
                             "actions": [
-                                {
-                                    "name": "start",
-                                    "text": "yes",
-                                    "type": "button",
-                                    "value": "start"
-                                },
+                                cellFactory.createCell("start", "start"),
                                 {
                                     "name": "end",
                                     "text": "no",

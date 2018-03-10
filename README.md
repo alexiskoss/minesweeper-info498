@@ -48,7 +48,7 @@ Next, click on the **Basic Information** tab in the side bar of your app setting
 
 Replace the **TOKEN** in **const slackMessages** with the verification token you just copied. Make sure it is surrounded by single parentheses (').
 
-Open a new terminal window and **cd** into the **minesweeper-info498** directory if you're haven't already. Run the command: **tsc** to compile the typescript file you just edited and then run the command: **node build/index.js**. Now that you have both the node file and ngrok server running, you are ready to go!
+Open a new terminal window and **cd** into the **minesweeper-info498** directory if you're haven't already. First run: **npm install** and then run the command: **tsc** to compile the typescript file you just edited. Then run the command: **node build/index.js**. Now that you have both the node file and ngrok server running, you are ready to go!
 
 Now you have successfully created the basic app support our code requires to run on Slack.
 

@@ -1,3 +1,5 @@
+import {CellFactory, ActionObj} from './cellFactory'
+
 const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/client');
 const { createMessageAdapter } = require('@slack/interactive-messages');
 
@@ -9,6 +11,8 @@ const appData: { [key: string]: any } = {}; // cache of data
 const maxRowSize: number = 5; //can be any number within reason
 const maxColSize: number = 5; //because of Slack limitations, the max column size can only be 5 OR less.
 const numbers: { [key: number]: string } = { 1: ":one:", 2: ":two:", 3: ":three:", 4: ":four:", 5: ":five:", 6: ":six:", 7: ":seven:", 8: ":eight:", 9: ":nine:" };
+const cellFactory = new CellFactory();
+
 let gameTiles: any[] = [];
 let flagModeOn: boolean = false;
 let user: any = {}; //stores user state for multiple players at a time
@@ -22,6 +26,7 @@ const rtm = new RtmClient(bot_token, {
 
 const web = new WebClient(bot_token);
 
+// callback for app "start game" buttons
 slackMessages.action('play', (payload: { [key: string]: any }) => {
   gameTiles = [];
   flagModeOn = false;
@@ -63,6 +68,7 @@ slackMessages.action('play', (payload: { [key: string]: any }) => {
   return replacementMsg;
 });
 
+// callback for app buttons that haven't been revealed
 slackMessages.action('reveal', (payload: { [key: string]: any }) => {
   const action: { [key: string]: any } = payload.actions[0];
   const replacementMsg: { [key: string]: any } = payload.original_message;
@@ -145,6 +151,7 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
   return replacementMsg;
 });
 
+// callback for flag mode app button
 slackMessages.action('flag_mode', (payload: { [key: string]: any }) => {
   const action: { [key: string]: any } = payload.actions[0];
   const replacementMsg: { [key: string]: any } = payload.original_message;
@@ -196,25 +203,15 @@ function populateGrid(): {[key: string]: any} {
 
     // columns
     for (let gridCol: number = 0; gridCol < maxColSize; gridCol++) {
-      let actionObj: { [key: string]: string } = {};
+      let actionObj: ActionObj;
       let mineChance: number = Math.floor(Math.random() * 100) + 1;
 
       //20% chance for a mine to appear
       if (mineChance <= 20) {
-        actionObj = {
-          "name": "mine",
-          "text": ":bomb:",
-          "type": "button",
-          "value": `${gridRow + 1}, ${gridCol + 1}`
-        }
+        actionObj = cellFactory.createCell("mine", `${gridRow + 1}, ${gridCol + 1}`) as ActionObj;
         gameTiles[gridRow][gridCol].action = actionObj;
       } else { //add empty cell
-        actionObj = {
-          "name": "unrevealed",
-          "text": ":black_square:",
-          "type": "button",
-          "value": `${gridRow + 1}, ${gridCol + 1}`
-        }
+        actionObj = cellFactory.createCell("unrevealed", `${gridRow + 1}, ${gridCol + 1}`) as ActionObj;
         gameTiles[gridRow][gridCol].action = actionObj;
       }
       actions[gridCol] = actionObj;
@@ -233,12 +230,7 @@ function createFlagMode(): {[key: string]: any} {
     "color": "#3AA3E3",
     "attachment_type": "default",
     "actions": [
-      {
-        "name": "flag a square",
-        "text": "Enter flag mode :triangular_flag_on_post:",
-        "type": "button",
-        "value": "flag a square"
-      }
+      cellFactory.createCell("flag a square", "flag a square")
     ]
   }
   msgAttachments.push(flagAttachmentObj)
@@ -352,12 +344,7 @@ function playAgain(channelId: string, replacementMsg: { [key: string]: any }): v
         "color": "#3AA3E3",
         "attachment_type": "default",
         "actions": [
-          {
-            "name": "start",
-            "text": "Play Again",
-            "type": "button",
-            "value": "start"
-          },
+          cellFactory.createCell("start", "start"),
           {
             "name": "quit",
             "text": "Quit",
@@ -409,12 +396,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message: { [key: string]: a
               "color": "#3AA3E3",
               "attachment_type": "default",
               "actions": [
-                {
-                  "name": "start",
-                  "text": "yes",
-                  "type": "button",
-                  "value": "start"
-                },
+                cellFactory.createCell("start", "start"),
                 {
                   "name": "end",
                   "text": "no",
