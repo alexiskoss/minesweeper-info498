@@ -5,8 +5,8 @@ const flag_1 = require("./flag");
 const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/client');
 const { createMessageAdapter } = require('@slack/interactive-messages');
 //IMPORTANT! SLACK TOKENS GO HERE
-const bot_token = 'TOKEN';
-const slackMessages = createMessageAdapter('TOKEN');
+const bot_token = 'xoxb-327767158548-LXGM7RybHW7UfxkHuwjPXxuw';
+const slackMessages = createMessageAdapter('LDDGJ20aGrOIdVlMDkNTLfeh');
 const appData = {}; // cache of data
 const maxRowSize = 5; //can be any number within reason
 const maxColSize = 5; //because of Slack limitations, the max column size can only be 5 OR less.

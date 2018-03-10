@@ -5,7 +5,7 @@ export interface ICellFactory {
   export class CellFactory implements ICellFactory {
     createCell(name: string, value: string):ActionObj|null {
       if(name== "mine") {
-        return new Action(name, ":bomb:", "button", value);
+        return new Action(name, ":black_square:", "button", value);
       } else if(name == "unrevealed") {
         return new Action(name, ":black_square:", "button", value);
       } else if(name == "flag a square") {

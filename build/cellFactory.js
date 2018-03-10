@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 class CellFactory {
     createCell(name, value) {
         if (name == "mine") {
-            return new Action(name, ":bomb:", "button", value);
+            return new Action(name, ":black_square:", "button", value);
         }
         else if (name == "unrevealed") {
             return new Action(name, ":black_square:", "button", value);
