@@ -1,4 +1,5 @@
 import {CellFactory, ActionObj} from './cellFactory'
+import {Flag} from './flag';
 
 const { RtmClient, CLIENT_EVENTS, RTM_EVENTS, WebClient } = require('@slack/client');
 const { createMessageAdapter } = require('@slack/interactive-messages');
@@ -39,12 +40,13 @@ slackMessages.action('play', (payload: { [key: string]: any }) => {
     replacementMsg.text = `${payload.user.name} started a new game of Minesweeper.`;
 
     let msgAttachments: { [key: string]: any } = [];
+    let flag = new Flag(gameTiles);
 
     intializeGrid();
 
     //add to a Slack message
     let grid = populateGrid();
-    let flagModeButton = createFlagMode();
+    let flagModeButton = flag.createFlagMode();
 
     msgAttachments = grid.concat(flagModeButton);
 
@@ -76,6 +78,8 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
   gameTiles = user[payload.user.id].grid;
   flagModeOn = user[payload.user.id].flag;
 
+  let flag = new Flag(gameTiles);
+
   let tilePosition = action.value.split(",");
   let row: number = parseInt(tilePosition[0].trim()) - 1;
   let col: number = parseInt(tilePosition[1].trim()) - 1;
@@ -94,16 +98,16 @@ slackMessages.action('reveal', (payload: { [key: string]: any }) => {
       revealEmptyCells(row, col);
     } else if (flagModeOn) {
       if (tileClicked.action.text != ":triangular_flag_on_post:") {
-        addFlag(row, col);
+        flag.addFlag(row, col);
       } else {
-        removeFlag(row, col);
+        flag.removeFlag(row, col);
       }
     }
   } else if (tileClicked.action.name == "mine" && flagModeOn) { //if in mine & flag mode, don't detonate
     if (tileClicked.action.text != ":triangular_flag_on_post:") {
-      addFlag(row, col);
+      flag.addFlag(row, col);
     } else {
-      removeFlag(row, col);
+      flag.removeFlag(row, col);
     }
   } else if (tileClicked.action.name == "mine" && !flagModeOn) { //if mine, detonate and lose
     replacementMsg.text = "";
@@ -222,21 +226,6 @@ function populateGrid(): {[key: string]: any} {
   return msgAttachments;
 }
 
-function createFlagMode(): {[key: string]: any} {
-  let msgAttachments: {[key: string]: any} = [];
-  let flagAttachmentObj: { [key: string]: any } = {
-    "fallback": "You are unable to change flag mode.",
-    "callback_id": "flag_mode",
-    "color": "#3AA3E3",
-    "attachment_type": "default",
-    "actions": [
-      cellFactory.createCell("flag a square", "flag a square")
-    ]
-  }
-  msgAttachments.push(flagAttachmentObj)
-  return msgAttachments;
-}
-
 function revealEmptyCells(row: number, col: number): void {
   if (row >= 0 && row < maxRowSize && col >= 0 && col < maxRowSize) {
     let gridCell: { [key: string]: any } = gameTiles[row][col].action;
@@ -314,24 +303,6 @@ function checkWin(): boolean {
     }
   }
   return true;
-}
-
-function addFlag(row: number, col: number): void {
-  let gridCell: { [key: string]: any } = gameTiles[row][col].action;
-
-  if (gridCell.name == "unrevealed") {
-    gridCell.text = ":triangular_flag_on_post:"
-  } else if (gridCell.name == "mine") {
-    gridCell.text = ":triangular_flag_on_post:"
-  }
-}
-
-function removeFlag(row: number, col: number): void {
-  let gridCell: { [key: string]: any } = gameTiles[row][col].action;
-
-  if (gridCell.text == ":triangular_flag_on_post:") {
-    gridCell.text = ":black_square:"
-  }
 }
 
 function playAgain(channelId: string, replacementMsg: { [key: string]: any }): void {

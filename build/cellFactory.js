@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class CellFactory {
-    // equilateral triangle code: 
-    // https://stackoverflow.com/questions/8935930/create-equilateral-triangle-in-the-middle-of-canvas
     createCell(name, value) {
         if (name == "mine") {
             return new Action(name, ":bomb:", "button", value);
